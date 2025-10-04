@@ -4,45 +4,53 @@ const axios = require("axios");
 const gatewayBackendUrl =
   "https://restaurant-api.taco5k.site/api/admin/gatewayintegration/payment";
 const processPayment = async (req, res) => {
+  const url =
+    "https://restaurant-api.taco5k.site/api/admin/gatewayintegration/payment";
+
+  console.log("Request Body:", req.body);
+
+  // const data = {
+  //   merchantSecretId: "c85db23f-6192-4728-8d57-5717af04e268",
+  //   amount: 0,
+  //   expiresAfterMinutes: 0,
+  //   redirectUrl: "string",
+  //   items: [
+  //     {
+  //       id: 0,
+  //       title: "string",
+  //       imageUrl: 0,
+  //       price: 0,
+  //     },
+  //   ],
+  // };
+
   try {
-    const {
-      items,
-      amount,
-      merchantSecretId,
-      expiresAfterMinutes,
-      redirectUrl,
-    } = req.body;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...req.body,
+        items: [
+          {
+            id: 1,
+            title: "Test Item",
+            imageUrl: "http://example.com/image.png",
+            price: 100,
+          },
+        ],
+      }),
+    });
+    const json = await response.json();
+    console.log("Response from Payment Gateway:", json);
 
-    if (
-      !items ||
-      !amount ||
-      items.length === 0 ||
-      amount <= 0 ||
-      !merchantSecretId ||
-      !redirectUrl
-    ) {
-      return res.status(400).send("Invalid request: Missing items or amount");
+    res.send(json);
+  } catch (err) {
+    if (err) {
+      // Something else happened
+      console.error("❌ Request setup error:", err.message);
     }
-
-    const paymentData = {
-      items,
-      amount,
-      merchantSecretId,
-      expiresAfterMinutes,
-      redirectUrl,
-    };
-
-    console.log("Payment Data:", paymentData);
-
-    // Send payment data to the payment gateway
-    const response = await axios.post(gatewayBackendUrl, paymentData);
-    const data = response.data;
-    console.log("Gateway Response:", data);
-
-    res.json({ data });
-  } catch (error) {
-    console.error("Error processing payment:", error.msg);
-    res.status(500).send("Internal Server Error");
   }
 };
 
